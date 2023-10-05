@@ -24,6 +24,8 @@ function App() {
     const Wishlist = lazy(() => import('./features/wishlist/Wishlist'));
     const TradeOffers = lazy(() => import('./features/trade_offer/TradeOffers'));
     const TrainDetail = lazy(() => import('./features/train/TrainDetail'));
+    
+    
 
     return (
         <ThemeProvider theme={theme}>
@@ -33,6 +35,7 @@ function App() {
                         fallbackRender={({ error, resetErrorBoundary }) => (
                             <div>
                                 Something went wrong!
+
                                 <button onClick={resetErrorBoundary}>Try again</button>
                             </div>
                         )}
