@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
@@ -10,7 +10,9 @@ import LeavingStation from './views/LeavingStation';
 import { ThemeProvider } from '@material-ui/core/styles';
 import theme from './theme';
 import { useNavigate } from 'react-router-dom';
-
+import { logoutUser,startCheck, endCheck } from './features/user/userSlice';
+import { checkUserSession } from './api/axiosInstance';
+import { useDispatch } from 'react-redux';
 
 
 function App() {
@@ -19,7 +21,7 @@ function App() {
     const Register = lazy(() => import('./views/Register'));
     const Login = lazy(() => import('./views/Login'));
     const UserProfile = lazy(() => import('./views/UserProfile'));
-    const UserCollection = lazy(() => import('./features/collection/UserCollection'));
+    const Collection = lazy(() => import('./features/collection/Collection'));
     const TrainList = lazy(() => import('./features/train/TrainList'));
     const Wishlist = lazy(() => import('./features/wishlist/Wishlist'));
     const TradeOffers = lazy(() => import('./features/trade_offer/TradeOffers'));
@@ -47,7 +49,7 @@ function App() {
                                 <Route path="/login" element={<Login />} />
                                 <Route path="/register" element={<Register />} />
                                 <Route path="/user_profile" element={<ProtectedRoute element={<UserProfile />} />} />
-                                <Route path="/collection" element={<ProtectedRoute element={<UserCollection />} />} />
+                                <Route path="/collection" element={<ProtectedRoute element={<Collection />} />} />
                                 <Route path="/trains" element={<ProtectedRoute element={<TrainList />} />} />
                                 <Route path="/wishlist" element={<ProtectedRoute element={<Wishlist />} />} />
                                 <Route path="/trade-offers" element={<ProtectedRoute element={<TradeOffers />} />} />
@@ -67,12 +69,27 @@ export default App;
 
 function ProtectedRoute({ element }) {
     const isAuthenticated = useSelector(selectAuthenticated);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
-    useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/leaving');
-        }
-    }, [isAuthenticated, navigate]);
+    
+    const isChecking = useSelector(state => state.user.isChecking);  // Grab the new state
 
-    return isAuthenticated ? element : null;
+    // useEffect(() => {
+    //     if (!isAuthenticated && !isChecking) {
+    //         navigate('/leaving');
+    //     }
+    // }, [isAuthenticated, isChecking, navigate]);
+
+    useEffect(() => {
+        dispatch(startCheck());
+        (async () => {
+            const isSessionValid = await checkUserSession();
+            if (!isSessionValid) {
+                dispatch(logoutUser());
+            }
+            dispatch(endCheck());
+        })();
+    }, [dispatch]);
+
+    return !isChecking && isAuthenticated ? element : null;
 }

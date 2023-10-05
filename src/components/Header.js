@@ -1,6 +1,8 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { AppBar, Toolbar, Typography, Button, makeStyles, BottomNavigation, BottomNavigationAction } from '@material-ui/core';
 import TrainIcon from '@material-ui/icons/Train';
+import LibraryAddCheckIcon from '@material-ui/icons/LibraryAddCheck';
+
 import StarIcon from '@material-ui/icons/Star';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosInstance from '../api/axiosInstance';
@@ -47,7 +49,11 @@ const Header = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    const [value, setValue] = React.useState(location.pathname);
+    const [value, setValue] = useState(location.pathname);
+
+    useEffect(() => {
+        setValue(location.pathname);
+    }, [location.pathname]);
 
     const handleLogout = async () => {
         try {
@@ -64,10 +70,12 @@ const Header = () => {
     return (
         <AppBar position="static" className={classes.appBar}>
             <Toolbar className={classes.toolbar}>
-                <Typography variant="h6" className={classes.title}>
+            <Typography variant="h6" className={classes.title}>
+                <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}> {/* Add this */}
                     <img src='./train_logo.svg' alt="App Logo" className={classes.logo} />
                     Merola Station
-                </Typography>
+                </Link>
+            </Typography>
                 {isAuthenticated && (
                     <Button variant="contained" className={classes.logoutButton} onClick={handleLogout}>
                         Logout
@@ -80,7 +88,7 @@ const Header = () => {
                 onChange={(event, newValue) => setValue(newValue)} 
                 className={classes.bottomNav}
                 >
-                <BottomNavigationAction label="Collection" value="/collection" icon={<TrainIcon />} component={Link} to="/collection" />
+                <BottomNavigationAction label="Collection" value="/collection" icon={<LibraryAddCheckIcon />} component={Link} to="/collection" />
                 <BottomNavigationAction label="Wishlist" value="/wishlist" icon={<StarIcon />} component={Link} to="/wishlist" />
                 <BottomNavigationAction label="Trains" value="/trains" icon={<TrainIcon />} component={Link} to="/trains" />
             </BottomNavigation>

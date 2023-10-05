@@ -29,8 +29,18 @@ export const useAddTrainToCollection = (userId) => {
     }
   };
 
+  const removeTrainFromCollection = async (userId, trainId) => {
+    try {
+        await axiosInstance.delete(`/users/${userId}/collection/trains/${trainId}`);
+    } catch (error) {
+        console.error('Error removing train from collection:', error);
+    }
+};
+
+
   return {
     addTrainToCollection,
+    removeTrainFromCollection,
     feedbackMessage,
     feedbackType,
     setFeedbackMessage,
