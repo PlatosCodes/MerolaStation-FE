@@ -1,16 +1,15 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, makeStyles } from '@material-ui/core';
+import { AppBar, Toolbar, Typography, Button, makeStyles, BottomNavigation, BottomNavigationAction } from '@material-ui/core';
+import TrainIcon from '@material-ui/icons/Train';
+import StarIcon from '@material-ui/icons/Star';
+import { useDispatch, useSelector } from 'react-redux';
 import axiosInstance from '../api/axiosInstance';
-import { useDispatch, useSelector } from 'react-redux'; // Step 1: Import useSelector
-import { logoutUser } from '../features/user/userSlice';
-import { useNavigate } from 'react-router-dom';
-import { selectAuthenticated } from '../features/user/userSlice'; // Adjust the path as necessary
-
+import { logoutUser, selectAuthenticated } from '../features/user/userSlice';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
         backgroundColor: '#1E213A',
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     },
     toolbar: {
         display: 'flex',
@@ -37,12 +36,18 @@ const useStyles = makeStyles((theme) => ({
             backgroundColor: '#D43F8D',
         }
     },
+    bottomNav: {
+        backgroundColor: 'white',
+        boxShadow: 'none',
+    }
 }));
 
 const Header = () => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [value, setValue] = React.useState(location.pathname);
 
     const handleLogout = async () => {
         try {
@@ -52,7 +57,8 @@ const Header = () => {
         } catch (error) {
             console.error("Error during logout: ", error);
         }
-    }
+    };
+
     const isAuthenticated = useSelector(selectAuthenticated);
 
     return (
@@ -68,6 +74,17 @@ const Header = () => {
                     </Button>
                 )}
             </Toolbar>
+            {isAuthenticated && (
+                <BottomNavigation 
+                value={value} 
+                onChange={(event, newValue) => setValue(newValue)} 
+                className={classes.bottomNav}
+                >
+                <BottomNavigationAction label="Collection" value="/collection" icon={<TrainIcon />} component={Link} to="/collection" />
+                <BottomNavigationAction label="Wishlist" value="/wishlist" icon={<StarIcon />} component={Link} to="/wishlist" />
+                <BottomNavigationAction label="Trains" value="/trains" icon={<TrainIcon />} component={Link} to="/trains" />
+            </BottomNavigation>
+                )}
         </AppBar>
     );
 }

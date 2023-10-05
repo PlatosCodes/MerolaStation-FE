@@ -54,13 +54,20 @@ const UserCollection = ({ userId: propUserId }) => {
 
   return (
     <div>
-        <Typography variant="h4">My Collection</Typography>
-        {collection && collection.length === 0 ? (
-            <div>
-                <p>Start adding trains to your collection!</p>
-                <Link to="/trains">Browse Trains</Link>
-            </div>
-        ) : (
+      <Typography variant="h4">My Collection</Typography>
+      {collection && collection.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography variant="h5">Your collection is empty!</Typography>
+          <Typography variant="subtitle1">Start by adding some trains to your collection.</Typography>
+          <Button variant="contained" color="primary" component={Link} to="/trains">
+            Browse Trains
+          </Button>
+        </div>
+      ) : (
+        <>
+          <Button variant="contained" color="primary" component={Link} to="/trains" style={{ margin: '10px 0' }}>
+            Add More Trains
+          </Button>
             <Table>
                 <TableHead>
                     <TableRow>
@@ -87,6 +94,7 @@ const UserCollection = ({ userId: propUserId }) => {
                     ))}
                 </TableBody>
             </Table>
+        </>
         )}
     </div>
 );
