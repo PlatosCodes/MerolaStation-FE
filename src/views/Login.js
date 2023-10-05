@@ -70,7 +70,6 @@ const Login = ({ onLoginSuccess }) => {
       const response = await axiosInstance.post('/users/login', formData);
         if (response.data.access_token) {
             axiosInstance.defaults.headers['Authorization'] = 'Bearer ' + response.data.access_token;
-            Cookie.set('token', response.data.access_token);  // Store token in cookie
             dispatch(loginUser(response.data.user));
             navigate('/collection');
         }

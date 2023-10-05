@@ -52,9 +52,22 @@ const UserWishlist = ({ userId: propUserId }) => {
     }
   };
 
+  const addToCollection = async (trainId) => {
+    try {
+      await axiosInstance.post(`/users/${userId}/collection/${trainId}`);
+      queryClient.invalidateQueries(['collection', userId]);
+      alert('Train added to collection.');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to add the train to the collection. Please try again.');
+    }
+};
+
+
   return (
     <div>
-      <Typography variant="h4">My Wishlist</Typography>
+      <div style={{padding: '10px'}}></div>
+      <Typography variant="h4" className={classes.centeredText} gutterBottom>My Wishlist</Typography>
       {wishlist && wishlist.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Typography variant="h5">Your wishlist is empty!</Typography>
@@ -75,7 +88,9 @@ const UserWishlist = ({ userId: propUserId }) => {
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Model Number</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Name</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Value</TableCell>
-                        <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Actions</TableCell>
+                        <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Collection</TableCell>
+                        <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Remove</TableCell>
+
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -88,7 +103,10 @@ const UserWishlist = ({ userId: propUserId }) => {
                             <TableCell className={classes.centeredText}>{train.name}</TableCell>
                             <TableCell className={classes.centeredText}>${train.value}</TableCell>
                             <TableCell className={classes.centeredText}>
-                                 <Button onClick={() => removeFromWishlist(train.id)} variant="contained" color="secondary">Remove</Button>
+                              <Button onClick={() => addToCollection(train.id)} variant="contained" color="primary">Add to Collection</Button>
+                              </TableCell>
+                            <TableCell className={classes.centeredText}>
+                              <Button onClick={() => removeFromWishlist(train.id)} variant="contained" color="secondary">Remove</Button>
                             </TableCell>
                         </TableRow>
                     ))}

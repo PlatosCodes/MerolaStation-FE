@@ -17,6 +17,8 @@ import debounce from 'lodash/debounce';
 import { useDispatch } from 'react-redux';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path
+import { useAddTrainToWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path
+
 
 
 const useStyles = makeStyles((theme) => ({
@@ -68,6 +70,10 @@ const TrainList = ({ userId: propUserId }) => {
     addTrainToCollection,
   } = useAddTrainToCollection(userId); // Call the hook here, after `userId` is determined.
 
+  const {
+    addTrainToWishlist,
+  } = useAddTrainToWishlist(userId); // Call the hook here, after `userId` is determined.
+
   useEffect(() => {
     if(userId) {
         dispatch(fetchUserCollection(userId));
@@ -91,6 +97,8 @@ const TrainList = ({ userId: propUserId }) => {
 
 
 const fetchSuggestions = debounce(async (query) => {
+  console.log("Fetching suggestions for:", query); // Add this line
+
   try {
       const suggestions = await fetchFromAPI(query, 1, 10);
       const uniqueSuggestions = Array.from(new Set(suggestions.map(s => s.model_number)))
@@ -151,10 +159,12 @@ const fetchSuggestions = debounce(async (query) => {
 
     return (
     <Container>
-      <Link to="/collection">
+      <div style={{padding: '10px'}}></div>
+
+      {/* <Link to="/collection">
         <Button variant="outlined" color="primary">Back to Collection</Button>
-      </Link>
-      <Typography variant="h4" gutterBottom>Trains</Typography>
+      </Link> */}
+      <Typography variant="h4" align='center' gutterBottom>Train List</Typography>
       {/* Feedback Message */}
         {feedbackMessage && (
           <div 
@@ -208,6 +218,8 @@ const fetchSuggestions = debounce(async (query) => {
               <TableCell style={{ textAlign: 'center' }}>Value</TableCell>
               <TableCell style={{ textAlign: 'center' }}>Details</TableCell>
               <TableCell style={{ textAlign: 'center' }}>Collection </TableCell>
+              <TableCell style={{ textAlign: 'center' }}>Wishlist </TableCell>
+
             </TableRow>
           </TableHead>
           <TableBody>
@@ -231,23 +243,38 @@ const fetchSuggestions = debounce(async (query) => {
                 <TableCell style={{ textAlign: 'center' }}>${train.value}</TableCell>
                 <TableCell style={{ textAlign: 'center' }}>
                   <Link to={`/trains/${train.id}`}>View Details</Link>
-                  </TableCell>
-                  <TableCell style={{ textAlign: 'center' }}>
-                  {
-                    train.is_in_collection ? (
-                      <CheckCircleIcon style={{ color: 'green' }}
-                      />
-                    ) : (
+                </TableCell>
+                <TableCell style={{ textAlign: 'center' }}>
+                {
+                  train.is_in_collection ? (
+                    <CheckCircleIcon style={{ color: 'green' }}
+                    />
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => addTrainToCollection(train.id)}
+                    >
+                      Add to Collection
+                    </Button>
+                  )
+                }
+                </TableCell>
+                <TableCell style={{ textAlign: 'center' }}>
+                { train.is_in_wishlist ? (
+                    <CheckCircleIcon style={{ color: 'blue' }}/>
+                  ) : (
                       <Button
-                        variant="outlined"
-                        color="primary"
-                        onClick={() => addTrainToCollection(train.id)}
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => addTrainToWishlist(train.id)}
                       >
-                        Add to Collection
+                          Add to Wishlist
                       </Button>
-                    )
+                  )
                   }
                 </TableCell>
+                
               </TableRow>
             ))}
           </TableBody>

@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../user/userSlice';
+import { useAddTrainToWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path
 
 const useStyles = makeStyles((theme) => ({
     tableHeader: {
@@ -29,6 +30,11 @@ const UserCollection = ({ userId: propUserId }) => {
     const queryClient = useQueryClient();
 
     const { data: collection, isError, isLoading } = useQuery(['collection', userId], () => fetchCollection(userId, pageId, pageSize));
+    
+    const {
+      addTrainToWishlist,
+      removeTrainFromWishlist
+    } = useAddTrainToWishlist(user.id);
 
     if (isLoading) {
         return <p>Loading collection...</p>;
@@ -52,9 +58,21 @@ const UserCollection = ({ userId: propUserId }) => {
     }
   };
 
+  // const addToWishlist = async (trainId) => {
+  //   try {
+  //     await axiosInstance.post(`/users/${userId}/wishlist/${trainId}`);
+  //     queryClient.invalidateQueries(['wishlist', userId]);
+  //     alert('Train added to wishlist.');
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert('Failed to add the train to the wishlist. Please try again.');
+  //   }
+  // };
+
   return (
     <div>
-      <Typography variant="h4">My Collection</Typography>
+      <div style={{padding: '10px'}}></div>
+      <Typography variant="h4" className={classes.centeredText} gutterBottom>My Collection</Typography>
       {collection && collection.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Typography variant="h5">Your collection is empty!</Typography>
@@ -75,7 +93,9 @@ const UserCollection = ({ userId: propUserId }) => {
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Model Number</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Name</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Value</TableCell>
-                        <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Actions</TableCell>
+                        <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Wishlist</TableCell>
+                        <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Remove</TableCell>
+
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -88,7 +108,18 @@ const UserCollection = ({ userId: propUserId }) => {
                             <TableCell className={classes.centeredText}>{train.name}</TableCell>
                             <TableCell className={classes.centeredText}>${train.value}</TableCell>
                             <TableCell className={classes.centeredText}>
-                                 <Button onClick={() => removeFromCollection(train.id)} variant="contained" color="secondary">Remove</Button>
+                              {train.is_in_wishlist ? (
+                                <Button variant="contained" color="secondary" onClick={() => removeTrainFromWishlist(train.id)}>
+                                  Remove from Wishlist
+                                </Button>
+                              ) : (
+                                <Button variant="contained" color="primary" onClick={() => addTrainToWishlist(train.id)}>
+                                  Add to Wishlist
+                                </Button>
+                              )}
+                            </TableCell>
+                            <TableCell className={classes.centeredText}>
+                              <Button onClick={() => removeFromCollection(train.id)} variant="contained" color="secondary">Remove</Button>
                             </TableCell>
                         </TableRow>
                     ))}

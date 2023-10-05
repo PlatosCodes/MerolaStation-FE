@@ -54,3 +54,13 @@ instance.interceptors.response.use(
 );
 
 export default instance;
+
+export const checkUserSession = async () => {
+    try {
+        const response = await instance.get('/check_session');
+        return response.data.isAuthenticated;
+    } catch (error) {
+        console.error('Failed to check user session:', error);
+        return false;
+    }
+};

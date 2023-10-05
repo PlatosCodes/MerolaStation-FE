@@ -15,11 +15,16 @@ export const userSlice = createSlice({
         logoutUser: (state) => {
             state.userData = null;
             state.isAuthenticated = false;
+        },startCheck: (state) => {
+            state.isChecking = true;
+        },
+        endCheck: (state) => {
+            state.isChecking = false;
         },
     }
 });
 
-export const { loginUser, logoutUser } = userSlice.actions;
+export const { loginUser, logoutUser, startCheck, endCheck } = userSlice.actions;
 export const selectUser = (state) => state.user.userData;
 export const selectAuthenticated = (state) => state.user.isAuthenticated;
 export default userSlice.reducer;
