@@ -4,43 +4,41 @@ import { useDispatch } from 'react-redux';
 import { loginUser } from '../features/user/userSlice';
 import { Helmet } from 'react-helmet';
 import axiosInstance from '../api/axiosInstance';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    height: '100vh',
-    backgroundImage: 'url(/lionel.jpg)',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
+      height: '100vh',
+      backgroundImage: 'url(/lionel.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
   },
   paper: {
-    padding: theme.spacing(4),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+      padding: theme.spacing(4),
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
   },
   header: {
-    marginBottom: theme.spacing(4),
+      marginBottom: theme.spacing(4),
   },
   form: {
-    width: '100%',
-    marginTop: theme.spacing(1),
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(2), // Adjust the gap between the fields
+      width: '100%',
+      marginTop: theme.spacing(1),
   },
   formRow: {
-    display: 'flex',
-    justifyContent: 'space-evenly',
+      display: 'flex',
+      justifyContent: 'center',
   },
   textField: {
-    flex: 1, // To evenly space the text fields
+      flex: 1,
+      margin: theme.spacing(0.5),
   },
   submit: {
-    margin: theme.spacing(3, 0, 2),
+      margin: theme.spacing(3, 0, 2),
   },
   footer: {
-    marginTop: theme.spacing(4),
+      marginTop: theme.spacing(4),
   },
 }));
 
@@ -75,6 +73,8 @@ const Login = ({ onLoginSuccess }) => {
           navigate('/collection');
       }
     } catch (err) {
+      console.error(err);
+
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
       } else {
@@ -97,33 +97,37 @@ const Login = ({ onLoginSuccess }) => {
           <main>
             <Typography variant="h4" align="center">Login</Typography>
             {error && <Typography color="error">{error}</Typography>}
-            <form onSubmit={handleSubmit} className={classes.form}>
-                <div style={{ display: 'flex' }}>
-                <TextField
-                    label="Username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    style={{ marginRight: '1rem' }} // Adjust the margin as needed
-                />
-                <TextField
-                    label="Password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    style={{ marginLeft: '1rem' }} // Adjust the margin as needed
-                />
+            <form onSubmit={handleSubmit} className={classes.form} style={{ align:"center"}}>
+                <div className={classes.formRow}> {/* adjusted here */}
+                    <TextField
+                        className={classes.textField} // adjusted here
+                        label="Username"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                    />
+                    <TextField
+                        className={classes.textField} // adjusted here
+                        label="Password"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                    />
                 </div>
                 <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    className={classes.submit}
                 >
-                Login
+                    Login
                 </Button>
+                {/* Register Navigation */}
+                <Typography variant="body2" align="center" style={{ marginTop: 15, marginBottom: 15 }}>
+                    Don't have an account? <Link to="/register">Register</Link>
+                </Typography>
             </form>
             <Typography variant="h6" align="center">
                 The inventory solution for your Lionel Train Collection.

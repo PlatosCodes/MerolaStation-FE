@@ -3,11 +3,26 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import axiosInstance from '../../api/axiosInstance';
 import { Container, Typography, Paper, Grid, Card, CardContent, CardMedia, Button } from '@material-ui/core';
+import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path
+import { useSelector } from 'react-redux';
+import { selectUser } from '../user/userSlice';  // Adjust the path if needed
+
+
 
 const fetchTrainById = (id) => axiosInstance.get(`/trains/${id}`).then(res => res.data);
 
+
 const TrainDetail = () => {
   const { id } = useParams();
+  const user = useSelector(selectUser);
+  
+  const {
+    addTrainToCollection,
+    feedbackMessage,
+    feedbackType,
+    setFeedbackMessage
+  } = useAddTrainToCollection(user.id);
+
   const { data: train, isError } = useQuery(['train', id], () => fetchTrainById(id));
 
   if (isError || !train) {
@@ -33,7 +48,13 @@ const TrainDetail = () => {
                 <Typography variant="h6">Model Number: {train.model_number}</Typography>
                 <Typography variant="h6">Name: {train.name}</Typography>
                 <Typography variant="h6">Value: ${train.value}</Typography>
-                {/* Add other details as necessary */}
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={() => addTrainToCollection(train.id)}
+                  >
+                    Add to Collection
+                  </Button>
               </CardContent>
             </Card>
           </Grid>
@@ -49,7 +70,6 @@ const TrainDetail = () => {
           </Grid>
         </Grid>
       </Paper>
-      {/* Optionally add a "Go Back" button here */}
       <Button variant="outlined" color="primary" onClick={() => window.history.back()}>Go Back</Button>
     </Container>
   );

@@ -1,10 +1,16 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { logErrorToService } from './errorUtils/errorUtils';
 import { selectAuthenticated } from './features/user/userSlice'; 
+import Header from './components/Header'; 
+import LeavingStation from './views/LeavingStation';
+import { ThemeProvider } from '@material-ui/core/styles';
+import theme from './theme';
+import { useNavigate } from 'react-router-dom';
+
 
 
 function App() {
@@ -20,50 +26,50 @@ function App() {
     const TrainDetail = lazy(() => import('./features/train/TrainDetail'));
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <Router>
-                <ErrorBoundary 
-                    fallbackRender={({ error, resetErrorBoundary }) => (
-                        <div>
-                            Something went wrong! 
-                        </div>
-                    )}
-                    onError={logErrorToService}
-                >
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <Routes>
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<Register />} />
-                            <Route path="/user_profile" element={<ProtectedRoute element={<UserProfile />} />} />
-                            <Route path="/collection" element={<ProtectedRoute element={<UserCollection />} />} />
-                            <Route path="/trains" element={<ProtectedRoute element={<TrainList />} />} />
-                            <Route path="/wishlist" element={<ProtectedRoute element={<Wishlist />} />} />
-                            <Route path="/trade-offers" element={<ProtectedRoute element={<TradeOffers />} />} />
-                            <Route path="/trains/:id" element={<ProtectedRoute element={<TrainDetail />} />} />
-                            <Route path="/" element={<Navigate to="/login" replace />} />
-                        </Routes>
-                    </Suspense>
-                </ErrorBoundary>
-            </Router>
-        </QueryClientProvider>
+        <ThemeProvider theme={theme}>
+            <QueryClientProvider client={queryClient}>
+                <Router>
+                    <ErrorBoundary 
+                        fallbackRender={({ error, resetErrorBoundary }) => (
+                            <div>
+                                Something went wrong!
+                                <button onClick={resetErrorBoundary}>Try again</button>
+                            </div>
+                        )}
+                        onError={logErrorToService}
+                    >
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <Header />
+                            <Routes>
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/register" element={<Register />} />
+                                <Route path="/user_profile" element={<ProtectedRoute element={<UserProfile />} />} />
+                                <Route path="/collection" element={<ProtectedRoute element={<UserCollection />} />} />
+                                <Route path="/trains" element={<ProtectedRoute element={<TrainList />} />} />
+                                <Route path="/wishlist" element={<ProtectedRoute element={<Wishlist />} />} />
+                                <Route path="/trade-offers" element={<ProtectedRoute element={<TradeOffers />} />} />
+                                <Route path="/trains/:id" element={<ProtectedRoute element={<TrainDetail />} />} />
+                                <Route path="/leaving" element={<LeavingStation />} />
+                                <Route path="/" element={<Navigate to="/login" replace />} />
+                            </Routes>
+                        </Suspense>
+                    </ErrorBoundary>
+                </Router>
+            </QueryClientProvider>
+        </ThemeProvider>
     );
 }
 
-function ProtectedRoute({ component, element }) {
-    const isAuthenticated = useSelector(selectAuthenticated); // You need to define the selector function `selectAuthenticated`
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
-
-    if (component) {
-        return React.createElement(component);
-    }
-  
-    if (element) {
-        return element;
-    }
-
-    return null;
-}
-
 export default App;
+
+function ProtectedRoute({ element }) {
+    const isAuthenticated = useSelector(selectAuthenticated);
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/leaving');
+        }
+    }, [isAuthenticated, navigate]);
+
+    return isAuthenticated ? element : null;
+}
