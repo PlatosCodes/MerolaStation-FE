@@ -52,7 +52,7 @@ const UserCollection = ({ userId: propUserId }) => {
     try {
       await axiosInstance.delete(`/users/${userId}/collection/${trainId}`);
     } catch (err) {
-      queryClient.setQueryData(['collection', userId], previousCollection);
+      queryClient.invalidateQueries(['collection', userId]);
       console.error(err);
       alert('Failed to remove the train. Please try again.');
     }

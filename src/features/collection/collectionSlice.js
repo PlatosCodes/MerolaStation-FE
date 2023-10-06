@@ -2,14 +2,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../api/axiosInstance';
 
-// Asynchronous thunk
 export const fetchUserCollection = createAsyncThunk(
   'collection/fetchUserCollection',
-  async (userId) => {
-    const response = await axiosInstance.get(`/users/${userId}/collection`);
+  async ({ userId, pageSize, pageId }) => { // <-- Destructure properties here
+    const response = await axiosInstance.get(`/users/${userId}/collection?page_id=${pageId}&page_size=${pageSize}`);
+    if (response.status === 204) return []; 
     return response.data;
   }
 );
+
 
 const collectionSlice = createSlice({
   name: 'collection',

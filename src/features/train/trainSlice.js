@@ -1,20 +1,12 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import Axios from 'axios';
-
-export const fetchTrains = createAsyncThunk('trains/fetchTrains', async () => {
-    const response = await Axios.get('/trains');
-    return response.data;
-});
+import { createSlice } from '@reduxjs/toolkit';
 
 const trainSlice = createSlice({
     name: 'trains',
     initialState: [],
-    reducers: {},
-    extraReducers: (builder) => {
-        builder.addCase(fetchTrains.fulfilled, (state, action) => {
-            return action.payload;
-        });
+    reducers: {
+        // Potentially add local state modifications here
     },
+    // Removed extraReducers as data fetching is now handled by React-Query
 });
 
 export default trainSlice.reducer;

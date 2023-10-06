@@ -7,19 +7,16 @@ import {
 import SearchIcon from '@material-ui/icons/Search';
 import ErrorIcon from '@material-ui/icons/Error';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import { useQuery, useQueryClient } from 'react-query';
+import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../user/userSlice';
 import axiosInstance from '../../api/axiosInstance';
-import { fetchUserCollection } from '../collection/collectionSlice';
 import debounce from 'lodash/debounce';
-import { useDispatch } from 'react-redux';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path
-import { useAddTrainToWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path
-
-
+import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path if needed
+import { useAddTrainToWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path if needed
+import Pagination from '@material-ui/lab/Pagination';
 
 const useStyles = makeStyles((theme) => ({
   centeredText: {
@@ -48,57 +45,91 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const FEEDBACK_DISPLAY_DURATION = 3000;  // 3 seconds
+const FEEDBACK_DISPLAY_DURATION = 3000;
 const DEFAULT_PAGE_SIZE = 25;
 
 const TrainList = ({ userId: propUserId }) => {
   const [model_number, setmodel_number] = useState('');
-  const [suggestions, setSuggestions] = useState([]); // To store search suggestions
-  
-  const dispatch = useDispatch();
-  const userCollection = useSelector(state => state.collection) || [];
-
-  const queryClient = useQueryClient(); // Initialize queryClient
-
+  const [suggestions, setSuggestions] = useState([]);
   const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [feedbackType, setFeedbackType] = useState(''); // can be 'success' or 'error'
-  
+  const [feedbackType, setFeedbackType] = useState('');
   const user = useSelector(selectUser);
   const userId = propUserId || user.id;
-
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showForm, setShowForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [newTrain, setNewTrain] = useState({
+        model_number: "",
+        train_name: ""
+  });
   const {
     addTrainToCollection,
-  } = useAddTrainToCollection(userId); // Call the hook here, after `userId` is determined.
-
+  } = useAddTrainToCollection(userId); 
   const {
     addTrainToWishlist,
-  } = useAddTrainToWishlist(userId); // Call the hook here, after `userId` is determined.
+  } = useAddTrainToWishlist(userId);
 
-  useEffect(() => {
-    if(userId) {
-        dispatch(fetchUserCollection(userId));
+  const fetchTrains = (model_number, pageId = currentPage) => {
+    const endpoint = model_number 
+      ? `/trains/search?model_number=${model_number}&page_id=${pageId}&page_size=${DEFAULT_PAGE_SIZE}`
+      : `/trains?page_id=${pageId}&page_size=${DEFAULT_PAGE_SIZE}`;
+    return axiosInstance.get(endpoint);
+  };
+
+  const { data: responseData, isError, isLoading } = useQuery(
+    ['trains', model_number, currentPage], 
+    () => fetchTrains(model_number),
+    { onSuccess: responseData => {
+      console.log(responseData)
+      const count = responseData?.data?.total_count || 0;
+      setTotalPages(Math.ceil(count / DEFAULT_PAGE_SIZE));
+    }}
+    
+);
+
+const trains = responseData?.data?.trains || [];
+
+
+  console.log("Trains:", trains);
+  console.log("Total Pages:", totalPages);
+
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+
+  const handleNewTrainSubmit = async () => {
+    if (!newTrain.model_number.trim() || !newTrain.train_name.trim()) {
+        setFeedbackMessage('Please provide both Model Number and Train Name.');
+        setFeedbackType('error');
+        return;
     }
-  }, [userId, dispatch]);
 
-  useEffect(() => {
-      if (feedbackMessage) {
-          const timer = setTimeout(() => {
-              setFeedbackMessage('');
-              setFeedbackType('');
-          }, FEEDBACK_DISPLAY_DURATION);
+    setIsSubmitting(true);  
 
-          return () => clearTimeout(timer);  // Cleanup timer
-      }
-  }, [feedbackMessage]);
-  
-  const fetchTrains = (model_number) => {
-    return fetchFromAPI(model_number, 1, DEFAULT_PAGE_SIZE);
+    try {
+        const response = await axiosInstance.post('/trains', newTrain);
+        if (response.status === 200) {
+            setNewTrain({ model_number: "", train_name: "" });
+            setShowForm(false);
+            setFeedbackMessage('Train successfully added!');
+            setFeedbackType('success');
+        } else {
+            setFeedbackMessage('Something went wrong. Please try again.');
+            setFeedbackType('error');
+        }
+    } catch (error) {
+        setFeedbackMessage('Error adding train. Please try again.');
+        setFeedbackType('error');
+    }
+
+    setIsSubmitting(false);  
 };
 
 
 const fetchSuggestions = debounce(async (query) => {
-  console.log("Fetching suggestions for:", query); // Add this line
-
   try {
       const suggestions = await fetchFromAPI(query, 1, 10);
       const uniqueSuggestions = Array.from(new Set(suggestions.map(s => s.model_number)))
@@ -109,26 +140,18 @@ const fetchSuggestions = debounce(async (query) => {
   }
 }, 300); 
 
-  const fetchFromAPI = (model_number, pageId, pageSize) => {
+  const fetchFromAPI = async (model_number, pageId, pageSize) => {
     const endpoint = model_number 
       ? `/trains/search?model_number=${model_number}&page_id=${pageId}&page_size=${pageSize}`
       : `/trains?page_id=${pageId}&page_size=${pageSize}`;
-    return axiosInstance.get(endpoint).then(res => res.data);
-};
 
-  const { data: trains, isError, isLoading } = useQuery(['trains', model_number], () => fetchTrains(model_number));
-
-  if (isLoading) {
-      return <p>Loading trains...</p>;
-  }
-
-  if (isError) {
-      return <p>Error loading trains.</p>;
-  }
+    const response = await axiosInstance.get(endpoint);
+    if (response.status === 204) return []; 
+    return response.data;
+  };
 
   const handleSearchSubmit = () => {
-    // refetch the trains based on model number
-    fetchTrains(model_number);
+    setCurrentPage(1);
   };
 
   const handleSearchChange = async (e) => {
@@ -144,23 +167,26 @@ const fetchSuggestions = debounce(async (query) => {
             setFeedbackType('error');
         }
     } else {
-        setSuggestions([]); // Clear suggestions if the search box is empty
+        setSuggestions([]);
     }
 };
 
-  if (isError) {
-    return <p>Error loading trains.</p>;
+    // Snackbar handlers
+    const handleCloseSnackbar = () => {
+      setFeedbackMessage('');
+  };
+
+  if (isLoading) {
+    return <p>Loading trains...</p>;
   }
 
-      // Snackbar handlers
-      const handleCloseSnackbar = () => {
-        setFeedbackMessage('');
-    };
+  if (isError) {
+      return <p>Error loading trains.</p>;
+  }
 
     return (
     <Container>
       <div style={{padding: '10px'}}></div>
-
       {/* <Link to="/collection">
         <Button variant="outlined" color="primary">Back to Collection</Button>
       </Link> */}
@@ -168,13 +194,13 @@ const fetchSuggestions = debounce(async (query) => {
       {/* Feedback Message */}
         {feedbackMessage && (
           <div 
-              style={{ 
-                  marginBottom: '1rem', 
-                  padding: '0.5rem', 
-                  backgroundColor: feedbackType === 'success' ? 'green' : 'red', 
-                  color: 'white',
-                  borderRadius: '4px' 
-              }}>
+          style={{ 
+            marginBottom: '1rem', 
+            padding: '0.5rem', 
+            backgroundColor: feedbackType === 'success' ? 'green' : 'red', 
+            color: 'white',
+            borderRadius: '4px' 
+          }}>
               {feedbackMessage}
           </div>
       )}
@@ -188,10 +214,10 @@ const fetchSuggestions = debounce(async (query) => {
           />
           {/* Dropdown for suggestions */}
           {suggestions.length > 0 && (
-              <Paper style={{maxHeight: 200, width: '100%', overflow: 'auto'}}>
+            <Paper style={{maxHeight: 200, width: '100%', overflow: 'auto'}}>
                   <List>
                       {suggestions.map(train => (
-                          <ListItem key={train.id} button component={Link} to={`/trains/${train.id}`}>
+                        <ListItem key={train.id} button component={Link} to={`/trains/${train.id}`}>
                               <Typography variant="body1">
                                   <strong>{train.model_number}</strong> - {train.name}
                               </Typography>
@@ -208,6 +234,30 @@ const fetchSuggestions = debounce(async (query) => {
         </Grid>
       </Grid>
 
+      {showForm ? (
+        <div>
+          <TextField 
+              label="Model Number" 
+              value={newTrain.model_number} 
+              onChange={(e) => setNewTrain(prev => ({ ...prev, model_number: e.target.value }))}
+          />
+          <TextField 
+              label="Train Name" 
+              value={newTrain.train_name} 
+              onChange={(e) => setNewTrain(prev => ({ ...prev, train_name: e.target.value }))}
+          />
+          <Button onClick={handleNewTrainSubmit}>Submit</Button>
+        </div>
+      ) : (
+        <Button onClick={() => setShowForm(true)}>Need to add a train?</Button>
+        )}
+      <Grid container justifyContent="center" className={useStyles.marginTop}>
+          <Pagination 
+              count={totalPages} 
+              page={currentPage} 
+              onChange={(event, value) => handlePageChange(value)}
+          />
+      </Grid>
       <Paper style={{ marginTop: '2rem' }}>
         <Table>
           <TableHead>

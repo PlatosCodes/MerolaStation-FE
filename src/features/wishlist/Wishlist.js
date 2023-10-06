@@ -46,7 +46,7 @@ const UserWishlist = ({ userId: propUserId }) => {
     try {
       await axiosInstance.delete(`/users/${userId}/wishlist/${trainId}`);
     } catch (err) {
-      queryClient.setQueryData(['wishlist', userId], previousWishlist);
+      queryClient.invalidateQueries(['wishlist', userId]);
       console.error(err);
       alert('Failed to remove the train. Please try again.');
     }
