@@ -29,26 +29,11 @@ instance.interceptors.response.use(
     async error => {
         const originalRequest = error.config;
 
-        // If error response code is 401 Unauthorized & hasn't retried
         if (error.response.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
-
-            try {
-                return handleTokenRefresh(error, originalRequest);
-            } catch (err) {
-                console.error(err);
-                // handle logout here, e.g., redirect to login page or clear local state/session
-                throw err;
-            }
-        } else if (error.response.status === 500) {
-            console.error("Internal server error");
-            // handle other types of errors
-        } else if (error.request) {
-            console.error('No response received', error.request);
-        } else {
-            console.error('Unexpected error', error.message);
+            return handleTokenRefresh(error, originalRequest);
         }
-
+        // If it's another kind of error or it's a second try to get an access token
         return Promise.reject(error);
     }
 );
