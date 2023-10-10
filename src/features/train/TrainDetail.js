@@ -11,7 +11,6 @@ import CheckIcon from '@material-ui/icons/CheckCircle';
 import { useAddTrainToWishlist, useIsTrainInWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path
 
 
-
 const fetchTrainById = (id) => axiosInstance.get(`/trains/${id}`).then(res => res.data);
 
 
@@ -26,17 +25,19 @@ const TrainDetail = () => {
     feedbackType,
     setFeedbackMessage
   } = useAddTrainToCollection(user.id);
-
+  
   const {
     addTrainToWishlist,
     removeTrainFromWishlist
   } = useAddTrainToWishlist(user.id);
-
+  
+  const { isInCollection, checkTrainInCollection } = useIsTrainInCollection(user.id, id);
+  
+  const {isTrainInWishlist, checkTrainInWishlist} = useIsTrainInWishlist(user.id, id);
+  console.log(isInCollection)
   
   const { data: train, isError } = useQuery(['train', id], () => fetchTrainById(id));
-  const { isInCollection, checkTrainInCollection } = useIsTrainInCollection(user.id, id);
 
-  const {isTrainInWishlist, checkTrainInWishlist} = useIsTrainInWishlist(user.id, id);
 
   if (isError || !train) {
     return (
@@ -61,24 +62,24 @@ const TrainDetail = () => {
                 <Typography variant="h6">Model Number: {train.model_number}</Typography>
                 <Typography variant="h6">Name: {train.name}</Typography>
                 <Typography variant="h6">Value: ${train.value}</Typography>
-                {checkTrainInCollection(train.id) ? (
+                {isInCollection ? (
                     <Button variant="contained" color="secondary" onClick={() => removeTrainFromCollection(user.id, train.id)}>
-                        <CheckIcon style={{ color: 'blue' }} /> In Collection
+                        <CheckIcon style={{ color: 'yellow' }} /> In Collection
                     </Button>
                 ) : (
                     <Button variant="contained" color="primary" onClick={() => addTrainToCollection(train.id)}>
                         Add to Collection
                     </Button>
                 )}
-                  {checkTrainInWishlist(train.id) ? (
-                      <Button variant="contained" color="secondary" onClick={() => removeTrainFromWishlist(user.id,train.id)}>
-                          <CheckIcon style={{ color: 'blue' }} /> In Wishlist
-                      </Button>
-                  ) : (
-                      <Button variant="contained" color="primary" onClick={() => addTrainToWishlist(train.id)}>
-                          Add to Wishlist
-                      </Button>
-                  )}
+                {isTrainInWishlist ? (
+                    <Button variant="contained" color="secondary" onClick={() => removeTrainFromWishlist(user.id,train.id)}>
+                        <CheckIcon style={{ color: 'blue' }} /> In Wishlist
+                    </Button>
+                ) : (
+                    <Button variant="contained" color="primary" onClick={() => addTrainToWishlist(train.id)}>
+                        Add to Wishlist
+                    </Button>
+                )}
               </CardContent>
             </Card>
           </Grid>

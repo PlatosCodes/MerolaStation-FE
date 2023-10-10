@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import { useQueryClient } from 'react-query';
 import { fetchUserCollection } from './collectionSlice';
+import { useIsTrainInCollection } from './useIsTrainInCollection';
 
 export const useAddTrainToCollection = (userId) => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -31,7 +32,9 @@ export const useAddTrainToCollection = (userId) => {
 
   const removeTrainFromCollection = async (userId, trainId) => {
     try {
-        await axiosInstance.delete(`/users/${userId}/collection/trains/${trainId}`);
+        await axiosInstance.delete(`/users/${userId}/collection/${trainId}`);
+        useIsTrainInCollection.setIsInCollection(false);
+        useIsTrainInCollection.isInCollection = false;
     } catch (error) {
         console.error('Error removing train from collection:', error);
     }

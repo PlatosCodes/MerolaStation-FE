@@ -59,6 +59,7 @@ const Header = () => {
         try {
             await axiosInstance.post('/logout');
             dispatch(logoutUser());
+            localStorage.removeItem('isAuthenticated');
             navigate('/leaving');
         } catch (error) {
             console.error("Error during logout: ", error);
@@ -71,7 +72,7 @@ const Header = () => {
         <AppBar position="static" className={classes.appBar}>
             <Toolbar className={classes.toolbar}>
             <Typography variant="h6" className={classes.title}>
-                <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}> {/* Add this */}
+                <Link to="/collection" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}> {/* Add this */}
                     <img src='./train_logo.svg' alt="App Logo" className={classes.logo} />
                     Merola Station
                 </Link>

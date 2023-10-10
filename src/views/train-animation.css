@@ -1,0 +1,18 @@
+.train-animation {
+    position: absolute;
+    bottom: 0;
+    left: -100%;
+    animation: trainMove 5s infinite;
+    z-index: 100;
+  
+    img {
+      width: 30; /* adjust according to your design */
+
+    }
+  }
+  
+  @keyframes trainMove {
+    to {
+      left: 100%;
+    }
+  }

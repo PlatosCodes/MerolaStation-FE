@@ -14,6 +14,41 @@ import { logoutUser,startCheck, endCheck } from './features/user/userSlice';
 import { checkUserSession } from './api/axiosInstance';
 import { useDispatch } from 'react-redux';
 
+function ProtectedRoute({ element }) {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    
+    const { isAuthenticated, isChecking } = useSelector(state => ({
+        isAuthenticated: state.user.isAuthenticated,
+        isChecking: state.user.isChecking
+    }));
+
+    useEffect(() => {
+        dispatch(startCheck());
+        (async () => {
+            const isSessionValid = await checkUserSession();
+            if (!isSessionValid) {
+                dispatch(logoutUser());
+            }
+            dispatch(endCheck());
+        })();
+    }, [dispatch]);
+
+    // If you're currently checking the session, show a loading indicator or return null
+    if (isChecking) {
+        return null;  // or <LoadingIndicator />
+    }
+    
+    // If the user is not authenticated, redirect to login
+    if (!isAuthenticated) {
+        navigate('/login');
+        return null;
+    }
+
+    // If the user is authenticated, render the desired component
+    return element;
+}
+
 
 function App() {
     const queryClient = new QueryClient();
@@ -55,7 +90,9 @@ function App() {
                                 <Route path="/trade-offers" element={<ProtectedRoute element={<TradeOffers />} />} />
                                 <Route path="/trains/:id" element={<ProtectedRoute element={<TrainDetail />} />} />
                                 <Route path="/leaving" element={<LeavingStation />} />
-                                <Route path="/" element={<Navigate to="/login" replace />} />
+                                <Route path="/" element={
+                                    !ProtectedRoute.isChecking && ProtectedRoute.isAuthenticated ? <Navigate to="/collection" replace /> : <Navigate to="/login" replace />
+                                    } />
                             </Routes>
                         </Suspense>
                     </ErrorBoundary>
@@ -67,29 +104,3 @@ function App() {
 
 export default App;
 
-function ProtectedRoute({ element }) {
-    const isAuthenticated = useSelector(selectAuthenticated);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    
-    const isChecking = useSelector(state => state.user.isChecking);  // Grab the new state
-
-    // useEffect(() => {
-    //     if (!isAuthenticated && !isChecking) {
-    //         navigate('/leaving');
-    //     }
-    // }, [isAuthenticated, isChecking, navigate]);
-
-    useEffect(() => {
-        dispatch(startCheck());
-        (async () => {
-            const isSessionValid = await checkUserSession();
-            if (!isSessionValid) {
-                dispatch(logoutUser());
-            }
-            dispatch(endCheck());
-        })();
-    }, [dispatch]);
-
-    return !isChecking && isAuthenticated ? element : null;
-}

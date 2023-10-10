@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Button, Typography, Grid, Paper, makeStyles } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../features/user/userSlice';
@@ -6,6 +6,8 @@ import { Helmet } from 'react-helmet';
 import axiosInstance from '../api/axiosInstance';
 import { useNavigate, Link } from 'react-router-dom';
 import Cookie from 'js-cookie';
+import './train-animation.css';
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,9 +43,10 @@ const useStyles = makeStyles((theme) => ({
   footer: {
       marginTop: theme.spacing(4),
   },
+  
 }));
 
-const Login = ({ onLoginSuccess }) => {
+const Login = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -68,14 +71,17 @@ const Login = ({ onLoginSuccess }) => {
 
     try {
       const response = await axiosInstance.post('/users/login', formData);
-        if (response.data.access_token) {
-            axiosInstance.defaults.headers['Authorization'] = 'Bearer ' + response.data.access_token;
-            dispatch(loginUser(response.data.user));
-            navigate('/collection');
-        }
+      if (response.data.access_token) {
+        axiosInstance.defaults.headers['Authorization'] = 'Bearer ' + response.data.access_token;
+        dispatch(loginUser(response.data.user));
+        
+        // Store the authentication state in localStorage
+        localStorage.setItem('isAuthenticated', 'true');
+        
+        navigate('/collection');
+      }
     } catch (err) {
       console.error(err);
-
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
       } else {
@@ -84,8 +90,12 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
+
   return (
     <Grid container className={classes.root} justifyContent="center" alignItems="center">
+      <div className="train-animation">
+          <img src="/train2.png" width='360' align="top" alt="Train Animation" />
+      </div>
       <Helmet><title>Login - Merola Station</title></Helmet>
 
       <Grid item xs={12} sm={8} md={5}>
@@ -98,7 +108,7 @@ const Login = ({ onLoginSuccess }) => {
           <main>
             <Typography variant="h4" align="center">Login</Typography>
             {error && <Typography color="error">{error}</Typography>}
-            <form onSubmit={handleSubmit} className={classes.form} style={{ align:"center"}}>
+            <form onSubmit={handleSubmit} className={classes.form} style={{ textAlign:"center"}}>
                 <div className={classes.formRow}> {/* adjusted here */}
                     <TextField
                         className={classes.textField} // adjusted here
