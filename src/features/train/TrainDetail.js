@@ -89,7 +89,7 @@ const TrainDetail = () => {
                 <Typography variant="h6">Value: ${train.value}</Typography>
                 {isInCollection ? (
                   <Button variant="contained" color="secondary" style={{ width: '200px', height: '40px', margin: '5px' }} onClick={() => handleRemoveFromCollection(user.id, train.id)}>
-                    <CheckIcon style={{ color: 'yellow' }} /> In Collection
+                    In Collection
                   </Button>
                 ) : (
                   <Button variant="contained" color="primary" style={{ width: '200px', height: '40px', margin: '5px' }} onClick={() => handleAddToCollection(train.id)}>
@@ -98,7 +98,7 @@ const TrainDetail = () => {
                 )}
                 {isInWishlist ? (
                   <Button variant="contained" color="secondary" style={{ width: '200px', height: '40px', margin: '5px' }} onClick={() => handleRemoveFromWishlist(user.id, train.id)}>
-                    <CheckIcon style={{ color: 'blue' }} /> In Wishlist
+                    In Wishlist
                   </Button>
                 ) : (
                   <Button variant="contained" color="primary" style={{ width: '200px', height: '40px', margin: '5px' }} onClick={() => handleAddToWishlist(train.id)}>

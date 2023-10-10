@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import { Table, TableHead, TableRow, TableCell, TableBody, Typography, Button, makeStyles } from '@material-ui/core';
 import { useQuery, useQueryClient } from 'react-query';
@@ -29,8 +29,40 @@ const UserCollection = ({ userId: propUserId }) => {
     const userId = propUserId || user.id;
     const queryClient = useQueryClient();
 
-    const { data: collection, isError, isLoading } = useQuery(['collection', userId], () => fetchCollection(userId, pageId, pageSize));
+    const { data: collectionData, isError, isLoading } = useQuery(['collection', userId], () => fetchCollection(userId, pageId, pageSize));
+
+    const [collection, setCollection] = useState([]);
+
+    useEffect(() => {
+        if (collectionData) {
+            setCollection(collectionData);
+        }
+    }, [collectionData]);
     
+
+    const handleAddToWishlist = async (trainId) => {
+        addTrainToWishlist(trainId);
+
+        // Update the local collection
+        const updatedCollection = collection.map(train => 
+            train.id === trainId 
+                ? { ...train, is_in_wishlist: true } 
+                : train
+        );
+        setCollection(updatedCollection);
+    };
+
+    const handleRemoveFromWishlist = async (userId, trainId) => {
+        removeTrainFromWishlist(userId, trainId);
+
+        // Update the local collection
+        const updatedCollection = collection.map(train => 
+            train.id === trainId 
+                ? { ...train, is_in_wishlist: false } 
+                : train
+        );
+        setCollection(updatedCollection);
+    };
     const {
       addTrainToWishlist,
       removeTrainFromWishlist
@@ -108,15 +140,21 @@ const UserCollection = ({ userId: propUserId }) => {
                             <TableCell className={classes.centeredText}>{train.name}</TableCell>
                             <TableCell className={classes.centeredText}>${train.value}</TableCell>
                             <TableCell className={classes.centeredText}>
-                              {train.is_in_wishlist ? (
-                                <Button variant="contained" color="secondary" onClick={() => removeTrainFromWishlist(train.id)}>
-                                  Remove from Wishlist
+                            {train.is_in_wishlist ? (
+                                <Button 
+                                    variant="contained" 
+                                    color="secondary" 
+                                    onClick={() => handleRemoveFromWishlist(user.id, train.id)}>
+                                    Remove from Wishlist
                                 </Button>
-                              ) : (
-                                <Button variant="contained" color="primary" onClick={() => addTrainToWishlist(train.id)}>
-                                  Add to Wishlist
+                            ) : (
+                                <Button 
+                                    variant="contained" 
+                                    color="primary" 
+                                    onClick={() => handleAddToWishlist(train.id)}>
+                                    Add to Wishlist
                                 </Button>
-                              )}
+                            )}
                             </TableCell>
                             <TableCell className={classes.centeredText}>
                               <Button onClick={() => removeFromCollection(train.id)} variant="contained" color="secondary">Remove</Button>

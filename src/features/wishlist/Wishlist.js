@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import { Table, TableHead, TableRow, TableCell, TableBody, Typography, Button, makeStyles } from '@material-ui/core';
 import { useQuery, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../user/userSlice';
+import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path
+
 
 const useStyles = makeStyles((theme) => ({
     tableHeader: {
@@ -28,8 +30,45 @@ const UserWishlist = ({ userId: propUserId }) => {
     const userId = propUserId || user.id;
     const queryClient = useQueryClient();
 
-    const { data: wishlist, isError, isLoading } = useQuery(['wishlist', userId], () => fetchWishlist(userId, pageId, pageSize));
+    const {
+      addTrainToCollection,
+      removeTrainFromCollection
+    } = useAddTrainToCollection(userId); 
 
+    const { data: wishlistData, isError, isLoading } = useQuery(['wishlist', userId], () => fetchWishlist(userId, pageId, pageSize));
+
+    const [wishlist, setWishlist] = useState([]);
+    useEffect(() => {
+      if (wishlistData) {
+      setWishlist(wishlistData);
+      }
+    }, [wishlistData]);
+
+    const handleAddToCollection = async (trainId) => {
+        addTrainToCollection(trainId);
+
+        // Update the local collection
+        const updatedWishlist = wishlist.map(train => 
+            train.id === trainId 
+                ? { ...train, is_in_collection: true } 
+                : train
+        );
+        setWishlist(updatedWishlist);
+    };
+
+    const handleRemoveFromCollection = async (userId, trainId) => {
+        removeTrainFromCollection(userId, trainId);
+
+        // Update the local collection
+        const updatedWishlist = wishlist.map(train => 
+          train.id === trainId 
+                ? { ...train, is_in_collection: false } 
+                : train
+        );
+        setWishlist(updatedWishlist);
+    };
+
+    
     if (isLoading) {
         return <p>Loading wishlist...</p>;
     }
@@ -103,8 +142,22 @@ const UserWishlist = ({ userId: propUserId }) => {
                             <TableCell className={classes.centeredText}>{train.name}</TableCell>
                             <TableCell className={classes.centeredText}>${train.value}</TableCell>
                             <TableCell className={classes.centeredText}>
-                              <Button onClick={() => addToCollection(train.id)} variant="contained" color="primary">Add to Collection</Button>
-                              </TableCell>
+                            {train.is_in_collection ? (
+                                <Button 
+                                    variant="contained" 
+                                    color="secondary" 
+                                    onClick={() => handleRemoveFromCollection(user.id, train.id)}>
+                                    Remove from Collection
+                                </Button>
+                            ) : (
+                                <Button 
+                                    variant="contained" 
+                                    color="primary" 
+                                    onClick={() => handleAddToCollection(train.id)}>
+                                    Add to Collection
+                                </Button>
+                            )}
+                            </TableCell>
                             <TableCell className={classes.centeredText}>
                               <Button onClick={() => removeFromWishlist(train.id)} variant="contained" color="secondary">Remove</Button>
                             </TableCell>
