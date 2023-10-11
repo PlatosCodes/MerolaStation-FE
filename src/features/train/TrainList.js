@@ -65,6 +65,10 @@ const TrainList = ({ userId: propUserId }) => {
         model_number: "",
         train_name: ""
   });
+  const [name, setName] = useState(''); // For name search
+  const [lastActiveField, setLastActiveField] = useState(null);
+
+
   const {
     addTrainToCollection,
   } = useAddTrainToCollection(userId); 
@@ -73,10 +77,14 @@ const TrainList = ({ userId: propUserId }) => {
     addTrainToWishlist,
   } = useAddTrainToWishlist(userId);
 
-  const fetchTrains = async (model_number, pageId = currentPage, pageSize = DEFAULT_PAGE_SIZE) => {
-    const endpoint = model_number 
-      ? `/trains/search?model_number=${model_number}&page_id=${pageId}&page_size=${pageSize}`
-      : `/trains?page_id=${pageId}&page_size=${pageSize}`;
+    const fetchTrains = async (model_number, name, pageId = currentPage, pageSize = DEFAULT_PAGE_SIZE) => {
+      let endpoint = `/trains?page_id=${pageId}&page_size=${pageSize}`;
+      
+      if (model_number) {
+        endpoint = `/trains/search?model_number=${model_number}&page_id=${pageId}&page_size=${pageSize}`;
+      } else if (name) {
+        endpoint = `/trains/search_by_name?name=${name}&page_id=${pageId}&page_size=${pageSize}`;
+      }
   
     try {
       const response = await axiosInstance.get(endpoint);
@@ -94,8 +102,8 @@ const TrainList = ({ userId: propUserId }) => {
   };
 
   const { data: responseData, isError, error, isLoading, refetch } = useQuery(
-    ['trains', model_number, currentPage], 
-    () => fetchTrains(model_number),
+    ['trains', model_number, name, currentPage], 
+    () => fetchTrains(model_number, name),
     { 
       onSuccess: responseData => {
         const count = responseData?.total_count || 0;
@@ -107,7 +115,11 @@ const TrainList = ({ userId: propUserId }) => {
       }
     }
   );
-  
+
+    useEffect(() => {
+      refetch();
+  }, [model_number, name]);
+
 
 const [isSearching, setIsSearching] = useState(false);
 
@@ -120,9 +132,18 @@ const hasNoResults = !isSearching && model_number && trains.length === 0;
   console.log("Total Pages:", totalPages);
   console.log("Response Data:", responseData);
 
-
+  useEffect(() => {
+    const savedPage = sessionStorage.getItem("trainListCurrentPage");
+    if (savedPage) {
+      setCurrentPage(Number(savedPage));
+    } else {
+      setCurrentPage(1);
+    }
+  }, []);
+  
 
   const handlePageChange = (newPage) => {
+    sessionStorage.setItem("trainListCurrentPage", newPage);
     setCurrentPage(newPage);
   };
 
@@ -155,42 +176,57 @@ const hasNoResults = !isSearching && model_number && trains.length === 0;
     setIsSubmitting(false);  
 };
 
-const fetchSuggestions = React.useCallback(debounce(async (query) => {
-  try {
-    const fetchedData = await fetchTrains(query, 1, 10);
-    if (fetchedData && fetchedData.trains) {
-      setSuggestions(fetchedData.trains);
-    }
-  } catch (error) {
-    console.error("Error fetching suggestions", error);
+const fetchSuggestions = React.useCallback(debounce(async (query, type) => {
+  let fetchedData;
+  
+  if (type === "model_number") {
+    fetchedData = await fetchTrains(query, null, 1, 10);
+  } else if (type === "name") {
+    fetchedData = await fetchTrains(null, query, 1, 10);
+  }
+
+  if (fetchedData && fetchedData.trains) {
+    setSuggestions(fetchedData.trains);
   }
 }, 300), []);
 
 
-  const handleSearchSubmit = () => {
-    setIsSearching(true);
-    refetch().then(() => {
-      setIsSearching(false);
-    });
-    setCurrentPage(1);
-  };
-  
-  
+const handleSearchSubmit = () => {
+  // Clear the suggestions on submit
+  setSuggestions([]);
 
-  const handleSearchChange = async (e) => {
-    const query = e.target.value;
-    setmodel_number(query);
-    if (query) {
-        setIsSearching(true);
-        await fetchSuggestions(query);
-        setIsSearching(false);
-        if (searchInputRef.current) {
-          searchInputRef.current.focus();
-        }
-    } else {
-        setSuggestions([]);
-    }
-  };
+  if (lastActiveField === "model_number") {
+      setName('');  // Clear the name since we're searching by model number
+  } else if (lastActiveField === "name") {
+      setmodel_number('');  // Clear the model_number since we're searching by name
+  }
+};
+
+
+  
+const handleSearchChange = async (e, type) => {
+  const query = e.target.value;
+
+  // Clear the suggestions initially
+  setSuggestions([]);
+
+  if (type === "model_number") {
+      setmodel_number(query);
+  } else if (type === "name") {
+      setName(query);
+  }
+
+  if (query) {
+      setIsSearching(true);
+      await fetchSuggestions(query, type);
+      setIsSearching(false);
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+  }
+};
+
+
   
 
   // Snackbar handlers
@@ -233,13 +269,18 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
       )}
       <Grid container spacing={3} alignItems="flex-end">
         <Grid item xs={10}>
-          <TextField 
-              fullWidth 
-              label="Search by Model Number" 
-              value={model_number} 
-              onChange={handleSearchChange}
-              ref={searchInputRef}
-          />
+        <TextField 
+          fullWidth 
+          label="Search by Name" 
+          value={name} 
+          onChange={(e) => handleSearchChange(e, "name")}
+        />
+        <TextField 
+            fullWidth 
+            label="Search by Model Number" 
+            value={model_number} 
+            onChange={(e) => handleSearchChange(e, "model_number")}
+        />
           { suggestions.length > 0 && (
             <Paper className={classes.suggestionsDropdown}>
                 <List>
@@ -263,9 +304,15 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
           </IconButton>
         </Grid>
       </Grid>
-
-      {showForm ? (
-        <div>
+      { (user.isAdmin || user.id === 1) && 
+      (!showForm ? (
+        <Button onClick={() => setShowForm(true)}>Need to add a train?</Button>
+      ):         
+        <Button onClick={() => setShowForm(false)}>Nevermind!</Button>
+      )
+    }
+    { (showForm ? (
+      <div>
           <TextField 
               label="Model Number" 
               value={newTrain.model_number} 
@@ -278,9 +325,8 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
           />
           <Button onClick={handleNewTrainSubmit}>Submit</Button>
         </div>
-      ) : (
-        <Button onClick={() => setShowForm(true)}>Need to add a train?</Button>
-        )}
+    ): null
+    )}
       <Grid container justifyContent="center" className={classes.marginTop}>
           <Pagination 
               count={totalPages} 
@@ -318,15 +364,7 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
             {trains && trains.map(train => (
               <TableRow key={train.id}>
                 <TableCell style={{ textAlign: 'center' }}>
-                {/* <img 
-                    alt={train.model_number} 
-                    src={`${train.model_number}.jpg`} 
-                    style={{ width: '100px', height: 'auto', marginRight: '10px' }} 
-                />
-                {train.model_number} */}
-                <img 
-                  alt='train'
-                  src={'./train.png'} 
+                <img alt='train' src= {train.img_url || "/train.png"}
                   style={{ width: '50px', height: 'auto', marginRight: '10px' }} 
                 />
                 </TableCell>
@@ -374,7 +412,15 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
       )}
       </Paper>   
        )}
-      
+      <Grid container justifyContent="center" className={classes.marginTop}>
+          <Pagination 
+              count={totalPages} 
+              page={currentPage} 
+              onChange={(event, value) => handlePageChange(value)}
+          />
+      </Grid>
+      <div style={{ marginBottom: '5rem'}}>
+      </div>
       {/* Snackbar for feedback */}
       <Snackbar
               anchorOrigin={{

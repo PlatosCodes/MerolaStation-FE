@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../user/userSlice';  // Adjust the path if needed
 import CheckIcon from '@material-ui/icons/CheckCircle';
 import { useAddTrainToWishlist, useIsTrainInWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path
-
+import  { useNavigate } from 'react-router-dom';
 
 const fetchTrainById = (id) => axiosInstance.get(`/train_detail/${id}`).then(res => res.data);
 
@@ -17,6 +17,7 @@ const fetchTrainById = (id) => axiosInstance.get(`/train_detail/${id}`).then(res
 const TrainDetail = () => {
   const { id } = useParams();
   const user = useSelector(selectUser);
+  const navigate = useNavigate()
   
   const {
     addTrainToCollection,
@@ -78,6 +79,14 @@ const TrainDetail = () => {
     setIsInWishlist(false);
   };
 
+  const handleGoBack = () => {
+    if (document.referrer && document.referrer.includes(window.location.origin)) {
+      window.history.back();
+    } else {
+      navigate("/trains");
+    }
+  };
+
   return (
     <Container>
       <Typography variant="h4" gutterBottom>{train.name}</Typography>
@@ -123,7 +132,7 @@ const TrainDetail = () => {
           </Grid>
         </Grid>
       </Paper>
-      <Button variant="outlined" color="primary" onClick={() => window.history.back()}>Go Back</Button>
+      <Button variant="outlined" color="primary" onClick={handleGoBack}>Go Back</Button>
     </Container>
   );
 }

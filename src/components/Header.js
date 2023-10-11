@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import { AppBar, Toolbar, Typography, Button, makeStyles, BottomNavigation, BottomNavigationAction } from '@material-ui/core';
 import TrainIcon from '@material-ui/icons/Train';
 import LibraryAddCheckIcon from '@material-ui/icons/LibraryAddCheck';
-
 import StarIcon from '@material-ui/icons/Star';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosInstance from '../api/axiosInstance';
@@ -55,6 +54,12 @@ const Header = () => {
         setValue(location.pathname);
     }, [location.pathname]);
 
+
+    const handleTrainIconClick = () => {
+        sessionStorage.removeItem("trainListCurrentPage");
+        navigate("/trains");
+      };
+      
     const handleLogout = async () => {
         try {
             await axiosInstance.post('/logout');
@@ -90,7 +95,7 @@ const Header = () => {
                 className={classes.bottomNav}
                 >
                 <BottomNavigationAction label="Collection" value="/collection" icon={<LibraryAddCheckIcon />} component={Link} to="/collection" />
-                <BottomNavigationAction label="Trains" value="/trains" icon={<TrainIcon />} component={Link} to="/trains" />
+                <BottomNavigationAction label="Trains" value="/trains" icon={<TrainIcon />} component={Link} onClick={handleTrainIconClick} to="/trains" />
                 <BottomNavigationAction label="Wishlist" value="/wishlist" icon={<StarIcon />} component={Link} to="/wishlist" />
             </BottomNavigation>
                 )}

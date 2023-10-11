@@ -127,9 +127,9 @@ const UserWishlist = ({ userId: propUserId }) => {
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Model Number</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Name</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Value</TableCell>
+                        <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Details</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Collection</TableCell>
                         <TableCell className={`${classes.centeredText} ${classes.tableHeader}`}>Remove</TableCell>
-
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -141,6 +141,9 @@ const UserWishlist = ({ userId: propUserId }) => {
                             <TableCell className={classes.centeredText}>{train.model_number}</TableCell>
                             <TableCell className={classes.centeredText}>{train.name}</TableCell>
                             <TableCell className={classes.centeredText}>${train.value}</TableCell>
+                            <TableCell className={classes.centeredText}>
+                                <Link to={`/trains/${train.id}`}>View Details</Link>
+                            </TableCell>
                             <TableCell className={classes.centeredText}>
                             {train.is_in_collection ? (
                                 <Button 
