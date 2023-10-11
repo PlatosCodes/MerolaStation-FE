@@ -134,7 +134,7 @@ const UserCollection = ({ userId: propUserId }) => {
                     {collection.map(train => (
                         <TableRow key={train.id}>
                             <TableCell className={classes.centeredText}>
-                                <img alt='train' src='./train.png' style={{ width: '50px', height: 'auto' }} />
+                                <img alt='train' src= {train.img_url || "/train.png"} style={{ width: '50px', height: 'auto' }} />
                             </TableCell>
                             <TableCell className={classes.centeredText}>{train.model_number}</TableCell>
                             <TableCell className={classes.centeredText}>{train.name}</TableCell>

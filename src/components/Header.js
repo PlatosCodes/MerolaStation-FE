@@ -90,8 +90,8 @@ const Header = () => {
                 className={classes.bottomNav}
                 >
                 <BottomNavigationAction label="Collection" value="/collection" icon={<LibraryAddCheckIcon />} component={Link} to="/collection" />
-                <BottomNavigationAction label="Wishlist" value="/wishlist" icon={<StarIcon />} component={Link} to="/wishlist" />
                 <BottomNavigationAction label="Trains" value="/trains" icon={<TrainIcon />} component={Link} to="/trains" />
+                <BottomNavigationAction label="Wishlist" value="/wishlist" icon={<StarIcon />} component={Link} to="/wishlist" />
             </BottomNavigation>
                 )}
         </AppBar>

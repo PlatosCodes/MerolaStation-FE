@@ -44,6 +44,8 @@ const TrainDetail = () => {
     setIsInWishlist(train?.is_in_wishlist);
   }, [train]);
 
+  const img_url = train?.img_url || "/train.png"
+
   if (isError || !train) {
     return (
       <Container>
@@ -109,14 +111,15 @@ const TrainDetail = () => {
             </Card>
           </Grid>
           <Grid item xs={12} md={6}>
-            <CardMedia
-              component="img"
-              alt={train.name}
-              height="200" 
-              //   image={`/path_to_images/${train.model_number}.jpg`} //use in future
-              image="/train.png"
-              title={train.name}
-            />
+          <CardMedia
+            component="img"
+            alt={train.name}
+            height="200" 
+            //   image={`/path_to_images/${train.model_number}.jpg`} //use in future
+            image={img_url}
+            title={train.name}
+            style={{ objectFit: 'contain' }} // this line ensures the image scales down properly
+          />
           </Grid>
         </Grid>
       </Paper>

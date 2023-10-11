@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import { logoutUser,startCheck, endCheck } from './features/user/userSlice';
 import { checkUserSession } from './api/axiosInstance';
 import { useDispatch } from 'react-redux';
+import ActivateAccount from './views/ActivateAccount';
+
 
 function ProtectedRoute({ element }) {
     const dispatch = useDispatch();
@@ -83,6 +85,8 @@ function App() {
                             <Routes>
                                 <Route path="/login" element={<Login />} />
                                 <Route path="/register" element={<Register />} />
+                                <Route path="/activate" element={<ActivateAccount />} />
+                                {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
                                 <Route path="/user_profile" element={<ProtectedRoute element={<UserProfile />} />} />
                                 <Route path="/collection" element={<ProtectedRoute element={<Collection />} />} />
                                 <Route path="/trains" element={<ProtectedRoute element={<TrainList />} />} />
