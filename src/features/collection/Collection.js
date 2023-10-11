@@ -19,7 +19,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const fetchCollection = (userId, pageId, pageSize) =>
-    axiosInstance.get(`/users/${userId}/collection?page_id=${pageId}&page_size=${pageSize}`).then(res => res.data);
+    axiosInstance.get(`/users/${userId}/collection?page_id=${pageId}&page_size=${pageSize}`).then(res => ({
+        trains: res.data.trains,
+        totalValue: res.data.totalValue
+    }));
 
 const UserCollection = ({ userId: propUserId }) => {
     const classes = useStyles();
@@ -28,18 +31,25 @@ const UserCollection = ({ userId: propUserId }) => {
     const pageSize = 25;
     const userId = propUserId || user.id;
     const queryClient = useQueryClient();
+    const [totalValue, setTotalValue] = useState(0);
+
 
     const { data: collectionData, isError, isLoading } = useQuery(['collection', userId], () => fetchCollection(userId, pageId, pageSize));
-
+    console.log("API Response:", collectionData);
     const [collection, setCollection] = useState([]);
 
     useEffect(() => {
-        if (collectionData) {
-            setCollection(collectionData);
+        if (collectionData && collectionData.trains && typeof collectionData.totalValue === 'number') {
+            setCollection(collectionData.trains);
+            setTotalValue(collectionData.totalValue);
         }
     }, [collectionData]);
     
-
+    
+    if (collectionData) {
+        console.log("here oy:", collectionData.totalValue);
+    }
+    
     const handleAddToWishlist = async (trainId) => {
         addTrainToWishlist(trainId);
 
@@ -76,19 +86,31 @@ const UserCollection = ({ userId: propUserId }) => {
         return <p>Error loading collection. Please try again later.</p>;
     }
 
-  const removeFromCollection = async (trainId) => {
-    const previousCollection = collection;
-    const updatedCollection = collection.filter(train => train.id !== trainId);
-    queryClient.setQueryData(['collection', userId], updatedCollection);
-  
-    try {
-      await axiosInstance.delete(`/users/${userId}/collection/${trainId}`);
-    } catch (err) {
-      queryClient.invalidateQueries(['collection', userId]);
-      console.error(err);
-      alert('Failed to remove the train. Please try again.');
-    }
-  };
+    const removeFromCollection = async (trainId) => {
+        const previousCollection = collection;
+        const removedTrain = collection.find(train => train.id === trainId); // Find the train to be removed
+        const updatedCollection = collection.filter(train => train.id !== trainId);
+    
+        if (removedTrain) {
+            setTotalValue(prevTotal => prevTotal - removedTrain.value); // Subtract the value of the removed train
+        }
+        setCollection(updatedCollection);
+        queryClient.setQueryData(['collection', userId], updatedCollection);
+      
+        try {
+            await axiosInstance.delete(`/users/${userId}/collection/${trainId}`);
+        } catch (err) {
+            // If the API call fails, revert the optimistic updates
+            setCollection(previousCollection);
+            if (removedTrain) {
+                setTotalValue(prevTotal => prevTotal + removedTrain.value); // Add back the value of the removed train
+            }
+            queryClient.invalidateQueries(['collection', userId]);
+            console.error(err);
+            alert('Failed to remove the train. Please try again.');
+        }
+    };
+    
 
   // const addToWishlist = async (trainId) => {
   //   try {
@@ -105,6 +127,7 @@ const UserCollection = ({ userId: propUserId }) => {
     <div>
       <div style={{padding: '10px'}}></div>
       <Typography variant="h4" className={classes.centeredText} gutterBottom>My Collection</Typography>
+      <Typography variant="h6" className={classes.centeredText}>Total Value: ${totalValue}</Typography>
       {collection && collection.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Typography variant="h5">Your collection is empty!</Typography>
