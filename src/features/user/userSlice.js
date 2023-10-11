@@ -7,6 +7,7 @@ export const userSlice = createSlice({
         userData: JSON.parse(localStorage.getItem('userData')),
         isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
         isChecking: true, 
+        isAdmin: false
     },
     
     reducers: {
@@ -14,13 +15,13 @@ export const userSlice = createSlice({
             localStorage.setItem('userData', JSON.stringify(action.payload));
             state.userData = action.payload;
             state.isAuthenticated = true;
+            state.isAdmin = action.payload
         },
         logoutUser: (state) => {
             localStorage.removeItem('userData');
             state.userData = null;
             state.isAuthenticated = false;
         },
-        
         startCheck: (state) => {
             state.isChecking = true;
         },

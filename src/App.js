@@ -10,11 +10,20 @@ import LeavingStation from './views/LeavingStation';
 import { ThemeProvider } from '@material-ui/core/styles';
 import theme from './theme';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser,startCheck, endCheck } from './features/user/userSlice';
+import { logoutUser, selectUser, startCheck, endCheck } from './features/user/userSlice';
 import { checkUserSession } from './api/axiosInstance';
 import { useDispatch } from 'react-redux';
 import ActivateAccount from './views/ActivateAccount';
 
+
+function AdminRoute({ children }) {
+    const user = useSelector(selectUser);
+    
+    if (user.isAdmin || user.id == 1) {
+        return children;
+    }
+    return <Navigate to="/unauthorized" replace />;
+}
 
 function ProtectedRoute({ element }) {
     const dispatch = useDispatch();
@@ -63,7 +72,8 @@ function App() {
     const Wishlist = lazy(() => import('./features/wishlist/Wishlist'));
     const TradeOffers = lazy(() => import('./features/trade_offer/TradeOffers'));
     const TrainDetail = lazy(() => import('./features/train/TrainDetail'));
-    
+    const TrainValue = lazy(() => import('./features/train/TrainValue'));
+
     
 
     return (
@@ -97,6 +107,7 @@ function App() {
                                 <Route path="/" element={
                                     !ProtectedRoute.isChecking && ProtectedRoute.isAuthenticated ? <Navigate to="/collection" replace /> : <Navigate to="/login" replace />
                                     } />
+                                <Route path="/admin/train_values" element={<AdminRoute><TrainValue /></AdminRoute>} />
                             </Routes>
                         </Suspense>
                     </ErrorBoundary>

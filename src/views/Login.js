@@ -73,8 +73,8 @@ const Login = () => {
       const response = await axiosInstance.post('/users/login', formData);
       if (response.data.access_token) {
         axiosInstance.defaults.headers['Authorization'] = 'Bearer ' + response.data.access_token;
-        dispatch(loginUser(response.data.user));
-        
+        console.log("R:", response.data)
+        dispatch(loginUser(response.data.user, response.data));
         // Store the authentication state in localStorage
         localStorage.setItem('isAuthenticated', 'true');
         
