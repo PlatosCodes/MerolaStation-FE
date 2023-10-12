@@ -14,8 +14,7 @@ import { selectUser } from '../user/userSlice';
 import axiosInstance from '../../api/axiosInstance';
 import debounce from 'lodash/debounce';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path if needed
-import { useAddTrainToWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path if needed
+import { useAddTrainToList} from './useAddTrainToList'
 import Pagination from '@material-ui/lab/Pagination';
 import { Checkbox } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
@@ -70,14 +69,25 @@ const EditTrainValues = ( {userId: propUserId} ) => {
         train_name: ""
   });
   const [editedTrains, setEditedTrains] = useState({});
-
+  
+  const [isInCollection, setIsInCollection] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const {
-    addTrainToCollection,
-  } = useAddTrainToCollection(userId); 
-
+    addTrainToList: addTrainToCollection,
+    removeTrainFromList: removeTrainFromCollection,
+    feedbackMessage: collectionFeedback,
+    feedbackType: collectionFeedbackType,
+  } = useAddTrainToList(userId, "collection", setIsInCollection);
+  
   const {
-    addTrainToWishlist,
-  } = useAddTrainToWishlist(userId);
+    addTrainToList: addTrainToWishlist,
+    removeTrainFromList: removeTrainFromWishlist,
+    feedbackMessage: wishlistFeedback,
+    feedbackType: wishlistFeedbackType,
+  } = useAddTrainToList(userId, "wishlist", setIsInWishlist);
+  
+
+
 
   const fetchTrains = async (model_number, pageId = currentPage, pageSize = DEFAULT_PAGE_SIZE) => {
     const endpoint = model_number 

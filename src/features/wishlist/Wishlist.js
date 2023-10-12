@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../user/userSlice';
-import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path
+import { useAddTrainToList } from '../train/useAddTrainToList';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -29,12 +29,23 @@ const UserWishlist = ({ userId: propUserId }) => {
     const pageSize = 25;
     const userId = propUserId || user.id;
     const queryClient = useQueryClient();
+    const [isInCollection, setIsInCollection] = useState(false);
+    const [isInWishlist, setIsInWishlist] = useState(false);
 
     const {
-      addTrainToCollection,
-      removeTrainFromCollection
-    } = useAddTrainToCollection(userId); 
-
+      addTrainToList: addTrainToCollection,
+      removeTrainFromList: removeTrainFromCollection,
+      feedbackMessage: collectionFeedback,
+      feedbackType: collectionFeedbackType,
+    } = useAddTrainToList(userId, "collection", setIsInCollection);
+    
+    const {
+      addTrainToList: addTrainToWishlist,
+      removeTrainFromList: removeTrainFromWishlist,
+      feedbackMessage: wishlistFeedback,
+      feedbackType: wishlistFeedbackType,
+    } = useAddTrainToList(userId, "wishlist", setIsInWishlist);
+    
     const { data: wishlistData, isError, isLoading } = useQuery(['wishlist', userId], () => fetchWishlist(userId, pageId, pageSize));
 
     const [wishlist, setWishlist] = useState([]);
@@ -149,14 +160,14 @@ const UserWishlist = ({ userId: propUserId }) => {
                                 <Button 
                                     variant="contained" 
                                     color="secondary" 
-                                    onClick={() => handleRemoveFromCollection(user.id, train.id)}>
+                                    onClick={() => removeTrainFromCollection(train.id)}>
                                     Remove from Collection
                                 </Button>
                             ) : (
                                 <Button 
                                     variant="contained" 
                                     color="primary" 
-                                    onClick={() => handleAddToCollection(train.id)}>
+                                    onClick={() => addTrainToCollection(train.id, "collection", setIsInCollection)}>
                                     Add to Collection
                                 </Button>
                             )}

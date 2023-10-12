@@ -3,34 +3,30 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import axiosInstance from '../../api/axiosInstance';
 import { Container, Typography, Paper, Grid, Card, CardContent, CardMedia, Button} from '@material-ui/core';
-import { useAddTrainToCollection } from '../collection/useAddTrainToCollection'; // Adjust path
-import { useIsTrainInCollection } from '../collection/useIsTrainInCollection'; // Adjust path
 import { useSelector } from 'react-redux';
-import { selectUser } from '../user/userSlice';  // Adjust the path if needed
+import { selectUser } from '../user/userSlice'; 
 import CheckIcon from '@material-ui/icons/CheckCircle';
-import { useAddTrainToWishlist, useIsTrainInWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path
+import { useAddTrainToList } from '../train/useAddTrainToList';
 import  { useNavigate } from 'react-router-dom';
 
 const fetchTrainById = (id) => axiosInstance.get(`/train_detail/${id}`).then(res => res.data);
 
 
-const TrainDetail = () => {
+const TrainDetail = ({ userId: propUserId } ) => {
   const { id } = useParams();
   const user = useSelector(selectUser);
   const navigate = useNavigate()
-  
+  const userId = propUserId || user.id;
+
   const {
     addTrainToCollection,
     removeTrainFromCollection,
-    feedbackMessage,
-    feedbackType,
-    setFeedbackMessage
-  } = useAddTrainToCollection(user.id);
+  } = useAddTrainToList(userId, "collection");
   
   const {
     addTrainToWishlist,
     removeTrainFromWishlist
-  } = useAddTrainToWishlist(user.id);
+  } = useAddTrainToList(userId, "wishlist");
 
   
   const { data: train, isError } = useQuery(['train', id], () => fetchTrainById(id));

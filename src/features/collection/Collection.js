@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../user/userSlice';
-import { useAddTrainToWishlist } from '../wishlist/useAddTrainToWishlist'; // Adjust path
+import { useAddTrainToList } from '../train/useAddTrainToList'; // Adjust path
 
 const useStyles = makeStyles((theme) => ({
     tableHeader: {
@@ -32,6 +32,12 @@ const UserCollection = ({ userId: propUserId }) => {
     const userId = propUserId || user.id;
     const queryClient = useQueryClient();
     const [totalValue, setTotalValue] = useState(0);
+
+    const {
+        addTrainToList: addTrainToWishlist,
+        removeTrainFromList: removeTrainFromWishlist
+    } = useAddTrainToList(userId, "wishlist");
+    
 
 
     const { data: collectionData, isError, isLoading } = useQuery(['collection', userId], () => fetchCollection(userId, pageId, pageSize));
@@ -73,10 +79,6 @@ const UserCollection = ({ userId: propUserId }) => {
         );
         setCollection(updatedCollection);
     };
-    const {
-      addTrainToWishlist,
-      removeTrainFromWishlist
-    } = useAddTrainToWishlist(user.id);
 
     if (isLoading) {
         return <p>Loading collection...</p>;
