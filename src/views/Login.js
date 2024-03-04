@@ -76,6 +76,7 @@ const Login = () => {
         console.log("R:", response.data)
         dispatch(loginUser(response.data.user, response.data));
         // Store the authentication state in localStorage
+        localStorage.setItem('userData', JSON.stringify(response.data.user));
         localStorage.setItem('isAuthenticated', 'true');
         
         navigate('/collection');

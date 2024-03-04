@@ -18,11 +18,12 @@ import ActivateAccount from './views/ActivateAccount';
 
 function AdminRoute({ children }) {
     const user = useSelector(selectUser);
-    
-    if (user.isAdmin || user.id == 1) {
+    const navigate = useNavigate();
+    if (user && (user.isAdmin || user.id === 1)) {
         return children;
     }
-    return <Navigate to="/unauthorized" replace />;
+    navigate('/leaving');
+    return null;
 }
 
 function ProtectedRoute({ element }) {
@@ -40,6 +41,7 @@ function ProtectedRoute({ element }) {
             const isSessionValid = await checkUserSession();
             if (!isSessionValid) {
                 dispatch(logoutUser());
+                localStorage.removeItem('userData');
             }
             dispatch(endCheck());
         })();

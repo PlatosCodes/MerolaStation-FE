@@ -64,6 +64,7 @@ const Header = () => {
         try {
             await axiosInstance.post('/logout');
             dispatch(logoutUser());
+            localStorage.removeItem('userData');
             localStorage.removeItem('isAuthenticated');
             navigate('/leaving');
         } catch (error) {

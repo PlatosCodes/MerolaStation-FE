@@ -1,10 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-
 export const userSlice = createSlice({
     name: 'user',
     initialState: {
-        userData: JSON.parse(localStorage.getItem('userData')),
+        userData: localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : null,
         isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
         isChecking: true, 
         isAdmin: false
@@ -15,12 +14,13 @@ export const userSlice = createSlice({
             localStorage.setItem('userData', JSON.stringify(action.payload));
             state.userData = action.payload;
             state.isAuthenticated = true;
-            state.isAdmin = action.payload
+            state.isAdmin = false
         },
         logoutUser: (state) => {
             localStorage.removeItem('userData');
             state.userData = null;
             state.isAuthenticated = false;
+            state.isAdmin = false;
         },
         startCheck: (state) => {
             state.isChecking = true;

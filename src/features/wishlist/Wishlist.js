@@ -67,18 +67,17 @@ const UserWishlist = ({ userId: propUserId }) => {
         setWishlist(updatedWishlist);
     };
 
-    const handleRemoveFromCollection = async (userId, trainId) => {
-        removeTrainFromCollection(userId, trainId);
-
-        // Update the local collection
-        const updatedWishlist = wishlist.map(train => 
-          train.id === trainId 
-                ? { ...train, is_in_collection: false } 
-                : train
-        );
-        setWishlist(updatedWishlist);
-    };
-
+    const handleRemoveFromCollection = async (trainId) => {
+      removeTrainFromCollection(trainId);
+  
+      // Update the local collection
+      const updatedWishlist = wishlist.map(train => 
+        train.id === trainId 
+              ? { ...train, is_in_collection: false } 
+              : train
+      );
+      setWishlist(updatedWishlist);
+  };
     
     if (isLoading) {
         return <p>Loading wishlist...</p>;

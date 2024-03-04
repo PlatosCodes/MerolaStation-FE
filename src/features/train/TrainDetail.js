@@ -19,13 +19,13 @@ const TrainDetail = ({ userId: propUserId } ) => {
   const userId = propUserId || user.id;
 
   const {
-    addTrainToCollection,
-    removeTrainFromCollection,
+    addTrainToList: addTrainToCollection,
+    removeTrainFromList: removeTrainFromCollection,
   } = useAddTrainToList(userId, "collection");
   
   const {
-    addTrainToWishlist,
-    removeTrainFromWishlist
+    addTrainToList: addTrainToWishlist,
+    removeTrainFromList: removeTrainFromWishlist, 
   } = useAddTrainToList(userId, "wishlist");
 
   
@@ -61,7 +61,7 @@ const TrainDetail = ({ userId: propUserId } ) => {
   };
 
   const handleRemoveFromCollection = (userId, trainId) => {
-    removeTrainFromCollection(userId, trainId);
+    removeTrainFromCollection(trainId);
     setIsInCollection(false);
   };
 
@@ -71,7 +71,7 @@ const TrainDetail = ({ userId: propUserId } ) => {
   };
 
   const handleRemoveFromWishlist = (userId, trainId) => {
-    removeTrainFromWishlist(userId, trainId);
+    removeTrainFromWishlist(trainId);
     setIsInWishlist(false);
   };
 

@@ -16,6 +16,7 @@ export const useAddTrainToList = (userId, listType, setIsInList) => {
           setFeedbackMessage(`Train added to ${listType} successfully!`);
           setFeedbackType('success');
           queryClient.invalidateQueries(['trains']);
+          queryClient.invalidateQueries(['wishlist', userId]);
           queryClient.invalidateQueries([listType, userId]);
         }
     } catch (err) {
@@ -34,6 +35,8 @@ export const useAddTrainToList = (userId, listType, setIsInList) => {
         if (setIsInList) {
           setIsInList(false);
         }
+        queryClient.invalidateQueries(['wishlist', userId]);
+
       } catch (error) {
         console.error(`Error removing train from ${listType}:`, error);
       }

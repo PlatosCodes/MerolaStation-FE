@@ -44,7 +44,21 @@ const useStyles = makeStyles((theme) => ({
   },
   marginTop: {
       marginTop: '2rem'
-  }
+  }, 
+  editButton: {
+    position: 'absolute',
+    top: '250',
+    right: '34px',
+    backgroundColor: 'transparent',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    padding: '5px 15px',
+    color: '#666',
+    '&:hover': {
+        backgroundColor: '#f5f5f5',
+        color: '#333'
+    }
+}
 }));
 
 const FEEDBACK_DISPLAY_DURATION = 3000;
@@ -362,19 +376,6 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
       ) : (
         <>
           <Button onClick={() => setShowForm(true)}>Need to add a train?</Button>
-          <Button onClick={() => setEditMode(!editMode)}>
-            {editMode ? "Exit Edit Mode" : "Enter Edit Mode"}
-          </Button>
-          {editMode && (
-            <Button
-              startIcon={<SaveIcon />}
-              onClick={saveEdits}
-              variant="contained"
-              color="primary"
-            >
-              Save Changes
-            </Button>
-          )}
         </>
       )}
       <Grid container justifyContent="center" className={classes.marginTop}>
@@ -384,6 +385,19 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
               onChange={(event, value) => handlePageChange(value)}
           />
       </Grid>
+      <Button className={classes.editButton} onClick={() => setEditMode(!editMode)}>
+          {editMode ? "Exit Edit Mode" : "Enter Edit Mode"}
+      </Button>
+      {editMode && (
+        <Button
+          startIcon={<SaveIcon />}
+          onClick={saveEdits}
+          variant="contained"
+          color="primary"
+        >
+          Save Changes
+        </Button>
+      )}
       {isLoading && (
       <div className={classes.centeredText}>
         <CircularProgress />
@@ -429,7 +443,7 @@ const fetchSuggestions = React.useCallback(debounce(async (query) => {
                 {train.model_number} */}
                 <img 
                   alt='train'
-                  src={'./train.png'} 
+                  src={train.img_url || "/train.png"}
                   style={{ width: '50px', height: 'auto', marginRight: '10px' }} 
                 />
                 </TableCell>

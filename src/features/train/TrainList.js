@@ -7,7 +7,7 @@ import {
 import SearchIcon from '@material-ui/icons/Search';
 import ErrorIcon from '@material-ui/icons/Error';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../user/userSlice';
@@ -41,6 +41,24 @@ const useStyles = makeStyles((theme) => ({
   },
   marginTop: {
       marginTop: '2rem'
+  },
+  tableContainer: {
+    position: 'relative', // This is crucial for the positioning of the button.
+    marginTop: '2rem'
+  },
+  updateButton: {
+      position: 'absolute',
+      top: '-40px',  // adjust these values to fine-tune positioning
+      right: '10px',  // adjust these values to fine-tune positioning
+      backgroundColor: 'transparent',
+      border: '1px solid #ccc',
+      borderRadius: '4px',
+      padding: '5px 15px',
+      color: '#666',
+      '&:hover': {
+          backgroundColor: '#f5f5f5',
+          color: '#333'
+      }
   }
 }));
 
@@ -48,6 +66,7 @@ const TrainList = ({ userId: propUserId }) => {
   const classes = useStyles();
   const FEEDBACK_DISPLAY_DURATION = 3000;
   const DEFAULT_PAGE_SIZE = 25;
+  const queryClient = useQueryClient();
   const [model_number, setmodel_number] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -108,9 +127,9 @@ const TrainList = ({ userId: propUserId }) => {
       }
     };
 
-    const { data: responseData, isError, error, isLoading, refetch } = useQuery(
-      ['trains', model_number, name, currentPage], 
-      () => fetchTrains(model_number, name),
+    const { data: responseData, isError, error, isLoading } = useQuery(
+      ['trains', lastActiveField, model_number, name, currentPage], 
+      () => fetchTrains(lastActiveField, lastActiveField === 'model' ? model_number : name),
       { 
         onSuccess: responseData => {
           const count = responseData?.total_count || 0;
@@ -123,10 +142,6 @@ const TrainList = ({ userId: propUserId }) => {
       }
   );
 
-  useEffect(() => {
-  refetch();
-  }, [model_number, name]);
-    
   const [isSearching, setIsSearching] = useState(false);
 
   const trains = responseData?.trains || [];
@@ -191,47 +206,52 @@ const TrainList = ({ userId: propUserId }) => {
   }, 300), []);
 
 
-  const handleSearchSubmit = () => {
-    setSuggestions([]);
-    
-    // Moved the resetting of opposite search field here
-    if (lastActiveField === "model") {
-      setName(''); 
-    } else if (lastActiveField === "name") {
-      setmodel_number('');  
-    }
-
-    refetch();  // Trigger a refetch when "Search" is clicked
-  };
-
-  const handleSearchChange = async (e, type) => {
+  const handleSearchChange = (e, type) => {
     const query = e.target.value;
-  
+
     if (type === "model") {
-      setmodel_number(query);
+        setmodel_number(query);
+        setLastActiveField('model');
     } else if (type === "name") {
-      setName(query);
-    }
-  
-    if (query) {
-      setIsSearching(true);
-      await fetchSuggestions(query, type);
-      setIsSearching(false);
-    } else {
-      setSuggestions([]);  // Clear the suggestions when the search query is empty
+        setName(query);
+        setLastActiveField('name');
     }
   };
-  
+
+  useEffect(() => {
+      if ((lastActiveField === 'model' && model_number) || (lastActiveField === 'name' && name)) {
+          setIsSearching(true);
+          fetchSuggestions(lastActiveField === 'model' ? model_number : name, lastActiveField);
+          setIsSearching(false);
+      } else {
+          setSuggestions([]);  // Clear the suggestions when the search query is empty
+      }
+  }, [model_number, name, lastActiveField]);
+
+  const handleSearchSubmit = () => {
+      setSuggestions([]);
+      if (lastActiveField == 'model') {
+        setName('')
+      } else {
+        setmodel_number('')
+      }
+      queryClient.invalidateQueries(['trains', lastActiveField, currentPage]);
+  };
 
   const handleSuggestionClick = (train) => {
-    if (lastActiveField === "model") {
-      setmodel_number(train.model_number);
-    } else if (lastActiveField === "name") {
-      setName(train.name);
-    }
-    setSuggestions([]);
-    refetch();  // Trigger a refetch when a suggestion is clicked
+      setSuggestions([]);
+
+      if (lastActiveField === "model") {
+          setmodel_number(train.model_number);
+          setName('')
+      } else if (lastActiveField === "name") {
+          setName(train.name);
+          setmodel_number('')
+      }
+
+      queryClient.invalidateQueries(['trains', lastActiveField, model_number, name, currentPage]);
   };
+
 
   // Snackbar handlers
   const handleCloseSnackbar = () => {
@@ -271,7 +291,7 @@ const TrainList = ({ userId: propUserId }) => {
               {feedbackMessage}
           </div>
       )}
-       <Grid container spacing={3} alignItems="flex-end">
+      <Grid container spacing={3} alignItems="flex-end">
       <Grid item xs={10}>
       <TextField 
         fullWidth 
@@ -342,7 +362,10 @@ const TrainList = ({ userId: propUserId }) => {
       </div>
     )}
     {!isLoading && (
-      <Paper style={{ marginTop: '2rem' }}>
+      <Paper className={classes.tableContainer}>
+      <Link to="/admin/train_values">
+          <Button className={classes.updateButton}>Update Train Values</Button>
+      </Link>
       {hasNoResults ? (
         <Typography className={classes.centeredText} variant="h5">
           There are no results matching your search.
