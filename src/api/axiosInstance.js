@@ -2,7 +2,7 @@ import Axios from 'axios';
 import Cookie from 'js-cookie';
 
 const instance = Axios.create({
-    baseURL: 'http://localhost:8080',
+    baseURL: 'https://api.alexandermerola.com/merolastation',
     withCredentials: true
 });
 
