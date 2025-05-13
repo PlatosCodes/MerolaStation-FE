@@ -2,7 +2,7 @@ import Axios from 'axios';
 import Cookie from 'js-cookie';
 
 const instance = Axios.create({
-    baseURL: 'https://api.alexandermerola.com/ms_api',
+    baseURL: 'https://trainyard.stuffimade.space/',
     withCredentials: true
 });
 
